@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Teams from '../Sections/Teams';
 import IndUsers from '../Sections/IndUsers';
 import Header from '../Sections/Header';
 import UserInvite from '../Sections/UserInvite';
 import CreateTeam from '../Sections/CreateTeam'
-
+import axios from 'axios'
 
 const AdminPage = () => {
   const userData = {
@@ -23,12 +23,6 @@ const AdminPage = () => {
           <div className="col-md-3">
             <IndUsers />
             <div className='row justify-content-around m-2 p-4'>
-              <div className='col-md-6'>
-                <UserInvite />
-              </div>
-              <div className='col-md-6'>
-                <CreateTeam />
-              </div>
             </div>
           </div>
           <div className="col-md-9">

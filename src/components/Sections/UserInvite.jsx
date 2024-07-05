@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
-
-const UserInvite = () => {
+import request from '../request'
+const UserInvite = ({indUsers,setIndUsers}) => {
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
-  const [fname, setFname] = useState('');
-  const [lname, setLname] = useState('');
+  // const [fname, setFname] = useState('');
+  const [name, setname] = useState('');
 
   const handleShowModal = () => setShowModal(true);
   const handleCloseModal = () => {
     setShowModal(false);
     setEmail('');
+    setname('')
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(`Inviting user with email: ${email}`);
-    handleCloseModal();
+    try {
+      const res = await request.post('admin/inviteUser', { email, fullName: name });
+      if (res.status !== 200) {
+        handleCloseModal();
+        alert(res.data.message || 'An error occurred');
+        return 
+      }
+      console.log(res.data);
+      await setIndUsers([...indUsers, res.data.user]);
+      handleCloseModal();
+    } catch (error) {
+      console.error(error);
+      handleCloseModal();
+      alert(error.response?.data?.message || 'An error occurred');
+    }
   };
 
   return (
@@ -38,13 +52,13 @@ const UserInvite = () => {
 
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
-                <div className="form-group m-2">
+                {/* <div className="form-group m-2">
                   <label htmlFor="inputFname" className='mx-1 p-1'>First Name : </label>
                   <input type="text" className="form-control" id="inputFname" placeholder="Enter First name" value={fname} onChange={(e) => setFname(e.target.value)} required />
-                </div>
+                </div> */}
                 <div className="form-group m-2">
-                  <label htmlFor="inputLname" className='mx-1 p-1'>Last Name : </label>
-                  <input type="text" className="form-control" id="inputLname" placeholder="Enter Last name" value={lname} onChange={(e) => setLname(e.target.value)} required />
+                  <label htmlFor="inputname" className='mx-1 p-1'>Name : </label>
+                  <input type="text" className="form-control" id="inputname" placeholder="Enter name" value={name} onChange={(e) => setname(e.target.value)} required />
                 </div>
                 <div className="form-group m-2">
                   <label htmlFor="inputEmail" className='mx-1 p-1'>Email address : </label>

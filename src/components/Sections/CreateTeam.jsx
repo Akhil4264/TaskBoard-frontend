@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import request from '../request';
 
-const CreateTeam = () => {
+const CreateTeam = ({teams,setTeams}) => {
   const [showModal, setShowModal] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamDescription, setTeamDescription] = useState('');
@@ -8,10 +9,26 @@ const CreateTeam = () => {
   const handleClose = () => setShowModal(false);
   const handleShow = () => setShowModal(true);
 
-  const handleSave = () => {
+  const handleSave = async() => {
     console.log('Team Name:', teamName);
     console.log('Team Description:', teamDescription);
-    handleClose();
+    try{
+      const res = await request.post('/admin/createTeam',{teamName,teamDescription})
+      if(res.status !== 200){
+        handleClose();
+        alert(res.data.message || 'An error occurred');
+        return 
+      }
+      console.log(res.data)
+      setTeams([...teams,res.data.team])
+      handleClose();
+    }
+    catch(e){
+      handleClose();
+      alert(e);
+    }
+    
+    
   };
 
   return (
