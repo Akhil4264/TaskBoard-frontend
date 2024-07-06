@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
+import request from '../request'
 const AddTeamMember = (props) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedUsers, setselectedUsers] = useState([]);
+  console.log(selectedUsers)
 
-  const [users,setUsers] = useState([
-    { id: 1, name: 'User A' },
-    { id: 2, name: 'User B' },
-    { id: 3, name: 'User C' },
-  ]);
+  useEffect(()=>{
+    request.get(`/admin/getIndUsers`)
+    .then((res) => {
+      console.log(res.data)
+      setUsers(res.data)
+    })
+    .catch((err) => {
+      alert(err)
+    })
+  },[])
+
+  const [users,setUsers] = useState([]);
   const openModal = () => {
     setModalIsOpen(true);
+    
   };
 
   const closeModal = () => {
@@ -34,8 +43,22 @@ const AddTeamMember = (props) => {
 
   const handleSubmit = () => {
     console.log('Team members:', selectedUsers);
-	props.setTeamMembers([...props.teamMembers,...selectedUsers])
+    if(selectedUsers.length === 0) {closeModal(); return ;}
+    const userids = selectedUsers.map((mem) => {
+      return mem.id
+    })
+    request.post(`/admin/addUserToTeam/${props.teamId}`,{"user_ids" : userids})
+    .then((res) => {
+      if(!res.data.message) return ;
+      
+      props.setTeamMembers([...props.teamMembers,...selectedUsers])
+      setUsers(users => users.filter(user => !userids.includes(user.id)));
+    })
+    .catch((err) => {
+      alert(err)
+    })
     closeModal();
+	 
   };
 
   return (

@@ -4,8 +4,15 @@ import UserCard from '../Blocks/UserCard'
 import CreateTask from '../Sections/CreateTask'
 import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
+import request from '../request'
+import {useParams } from 'react-router';
+
+
+// admin/showTeam/{id}
+
 
 const TeamPage = () => {
+  const params = useParams()
   const [allTasks] = useState([
     { id: 1, title: 'Task 1', priority: 'High', status: 'Ongoing', assigned_date: '2024-07-08', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', assigned_to: 'John Doe', deadline: '2024-07-10', attachments: ['attachment1.pdf', 'attachment2.png'] },
     { id: 2, title: 'Task 2', priority: 'Medium', status: 'Not Started', assigned_date: '2024-07-05', description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', assigned_to: 'Jane Smith', deadline: '2024-07-12', attachments: ['attachment3.docx'] },
@@ -16,9 +23,9 @@ const TeamPage = () => {
   ]);
 
   const [teamMembers,setTeamMembers] = useState([
-    { name: 'John Doe', team: 'Development', email: 'john@example.com' },
-    { name: 'Jane Smith', team: 'Marketing', email: 'jane@example.com' },
-    { name: 'Michael Brown', team: 'Design', email: 'michael@example.com' }
+    // { name: 'John Doe', team: 'Development', email: 'john@example.com' },
+    // { name: 'Jane Smith', team: 'Marketing', email: 'jane@example.com' },
+    // { name: 'Michael Brown', team: 'Design', email: 'michael@example.com' }
   ]);
 
   const [filteredTeamMembers, setFilteredTeamMembers] = useState(teamMembers);
@@ -30,14 +37,32 @@ const TeamPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalMember, setModalMember] = useState({});
 
+  useEffect(() => {
+
+    request.get(`/admin/showTeam/${params.id}`)
+    .then((res) => {
+      console.log(res.data)
+      setTeamMembers(res.data.users)
+      //res.data.[team,users,userCount]
+    })
+    .catch(err => {
+      alert(err)
+    })
+
+
+  },[])
+
+
+
   useEffect(()=>{
+    
+    // request.get(`/admin/`)
     const filteredMembers = teamMembers.filter(member =>
       member.name.toLowerCase().includes(searchText.toLowerCase())
     );
     setFilteredTeamMembers(filteredMembers);
     
-    // change tasks
-  },[teamMembers, searchText]);
+  },[teamMembers]);
 
   const handleSearch = (event) => {
     const searchValue = event.target.value;
@@ -130,7 +155,7 @@ const TeamPage = () => {
               ))}
             </ul>
           </div>
-          <AddTeamMember  teamMembers={teamMembers} setTeamMembers={setTeamMembers}/>
+          <AddTeamMember  teamMembers={teamMembers} setTeamMembers={setTeamMembers} teamId = {params.id}/>
           <CreateTask teamMembers={teamMembers}/>
         </div>
         <div className="col-md-9">
