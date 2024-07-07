@@ -28,7 +28,6 @@ const AdminPage = () => {
           <div className="col-md-9">
             <Teams />
           </div>
-
         </div>
       </div>
     </>

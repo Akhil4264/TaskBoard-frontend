@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from './components/Pages/LoginPage';
 import AdminPage from './components/Pages/AdminPage';
 import TeamPage from './components/Pages/TeamPage';
-import UserPage from './components/Pages/UserPage';
+import UserPage from './components/Pages/IndUserPage';
 import ForgotPass from "./components/Pages/ForgotPass";
 import EmployeePage from "./components/Pages/EmployeePage";
 

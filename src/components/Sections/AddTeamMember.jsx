@@ -3,12 +3,12 @@ import request from '../request'
 const AddTeamMember = (props) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedUsers, setselectedUsers] = useState([]);
-  console.log(selectedUsers)
+  // console.log(selectedUsers)
 
   useEffect(()=>{
     request.get(`/admin/getIndUsers`)
     .then((res) => {
-      console.log(res.data)
+      // console.log(res.data)
       setUsers(res.data)
     })
     .catch((err) => {
@@ -42,7 +42,7 @@ const AddTeamMember = (props) => {
   };
 
   const handleSubmit = () => {
-    console.log('Team members:', selectedUsers);
+    // console.log('Team members:', selectedUsers);
     if(selectedUsers.length === 0) {closeModal(); return ;}
     const userids = selectedUsers.map((mem) => {
       return mem.id

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import request from '../request'
 
-const NewTaskModal = ({ teamMembers }) => {
+const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
   const [showModal, setShowModal] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [priority, setPriority] = useState('medium');
@@ -10,29 +11,7 @@ const NewTaskModal = ({ teamMembers }) => {
   const [attachments, setAttachments] = useState([]);
 
   const handleClose = (e) => {
-    e.preventDefault()
-    setTaskName('');
-    setPriority('medium');
-    setDescription('');
-    setAssignedTo('');
-    setDeadline('');
-    setAttachments([]);
-    setShowModal(false);
-    setShowModal(false);
-  }
-  const handleShow = () => setShowModal(true);
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Handle form submission here, e.g., send data to backend or update state
-    console.log({
-      taskName,
-      priority,
-      description,
-      assignedTo,
-      deadline,
-      attachments
-    });
+    e.preventDefault();
     setTaskName('');
     setPriority('medium');
     setDescription('');
@@ -41,6 +20,49 @@ const NewTaskModal = ({ teamMembers }) => {
     setAttachments([]);
     setShowModal(false);
   };
+
+  const handleShow = () => setShowModal(true);
+
+  const handleSubmit = async(event) => {
+    event.preventDefault();
+    console.log({
+      taskName,
+      priority,
+      description,
+      assignedTo,
+      deadline,
+      attachments
+    });
+
+    try {
+      const res = await request.post('/task/new', {
+        name : taskName,
+        priority,
+        description,
+        assignedTo : assignedTo,
+        deadline,
+      })
+      // console.log(res.data)
+      setAllTasks([...allTasks,res.data])
+    }
+    catch(e){
+      console.log(e)
+    }
+
+
+    setTaskName('');
+    setPriority('medium');
+    setDescription('');
+    setAssignedTo('');
+    setDeadline('');
+    setAttachments([]);
+    setShowModal(false);
+  };
+
+
+  const handleDeleteTask = () => {
+
+  }
 
   return (
     <>
@@ -66,9 +88,9 @@ const NewTaskModal = ({ teamMembers }) => {
                 <div className="form-group m-2">
                   <label htmlFor="priority">Priority</label>
                   <select className="form-control" id="priority" value={priority} onChange={(e) => setPriority(e.target.value)} required>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
+                    <option key="1" value="high">High</option>
+                    <option key="2" value="medium">Medium</option>
+                    <option key="3" value="low">Low</option>
                   </select>
                 </div>
                 <div className="form-group m-2">
@@ -78,10 +100,10 @@ const NewTaskModal = ({ teamMembers }) => {
                 <div className="form-group m-2">
                   <label htmlFor="assignedTo">Assigned To</label>
                   <select className="form-control" id="assignedTo" value={assignedTo} onChange={(e) => setAssignedTo(e.target.value)} required>
-                    <option value="">Select...</option>
-                    {teamMembers.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.name}
+                    <option value="" disabled>Select...</option>
+                    {teamMembers.map((mem) => (
+                      <option key={mem.id} value={mem.id}>
+                        {mem.name}
                       </option>
                     ))}
                   </select>
@@ -92,7 +114,7 @@ const NewTaskModal = ({ teamMembers }) => {
                 </div>
                 <div className="form-group m-2">
                   <label htmlFor="attachments">Attachments</label>
-                  <input type="file" className="form-control" id="attachments" onChange={(e) => setAttachments(e.target.files)} multiple />
+                  <input type="file" className="form-control" id="attachments" onChange={(e) => setAttachments(Array.from(e.target.files))} multiple />
                 </div>
               </div>
               <div className="modal-footer">
@@ -108,4 +130,4 @@ const NewTaskModal = ({ teamMembers }) => {
   );
 };
 
-export default NewTaskModal;
+export default CreateTask;

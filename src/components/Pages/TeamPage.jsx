@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AddTeamMember from '../Sections/AddTeamMember';
-import UserCard from '../Blocks/UserCard'
+import UserCard from '../Blocks/UserModal'
 import CreateTask from '../Sections/CreateTask'
 import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
@@ -12,22 +12,17 @@ import {useParams } from 'react-router';
 
 
 const TeamPage = () => {
+  const[loggedUser,setloggedUser] = useState({
+    "role" : "admin"
+  })
   const params = useParams()
-  const [allTasks] = useState([
-    { id: 1, title: 'Task 1', priority: 'High', status: 'Ongoing', assigned_date: '2024-07-08', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', assigned_to: 'John Doe', deadline: '2024-07-10', attachments: ['attachment1.pdf', 'attachment2.png'] },
-    { id: 2, title: 'Task 2', priority: 'Medium', status: 'Not Started', assigned_date: '2024-07-05', description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.', assigned_to: 'Jane Smith', deadline: '2024-07-12', attachments: ['attachment3.docx'] },
-    { id: 3, title: 'Task 3', priority: 'Low', status: 'Done', assigned_date: '2024-07-06', description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.', assigned_to: 'Michael Brown', deadline: '2024-07-15', attachments: [] },
-    { id: 4, title: 'Task 4', priority: 'High', status: 'Ongoing', assigned_date: '2024-07-07', description: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.', assigned_to: 'John Doe', deadline: '2024-07-20', attachments: ['attachment4.txt'] },
-    { id: 5, title: 'Task 5', priority: 'Medium', status: 'Not Started', assigned_date: '2024-07-08', description: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', assigned_to: 'Jane Smith', deadline: '2024-07-25', attachments: ['attachment5.xlsx'] },
-    { id: 6, title: 'Task 6', priority: 'Low', status: 'Done', assigned_date: '2024-07-09', description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', assigned_to: 'Michael Brown', deadline: '2024-07-14', attachments: [] }
-  ]);
+  const [allTasks,setAllTasks] = useState([]);
 
-  const [teamMembers,setTeamMembers] = useState([
-    // { name: 'John Doe', team: 'Development', email: 'john@example.com' },
-    // { name: 'Jane Smith', team: 'Marketing', email: 'jane@example.com' },
-    // { name: 'Michael Brown', team: 'Design', email: 'michael@example.com' }
-  ]);
+  const [teamMembers,setTeamMembers] = useState([]);
 
+  const [team,setTeam] = useState({})
+
+  const [teams,setTeams] = useState([])
   const [filteredTeamMembers, setFilteredTeamMembers] = useState(teamMembers);
   const [searchText, setSearchText] = useState('');
   const [filterPriority, setFilterPriority] = useState('');
@@ -39,15 +34,25 @@ const TeamPage = () => {
 
   useEffect(() => {
 
-    request.get(`/admin/showTeam/${params.id}`)
+    request.get(`/admin/getTeam/${params.id}`)
     .then((res) => {
-      console.log(res.data)
-      setTeamMembers(res.data.users)
-      //res.data.[team,users,userCount]
+      setTeamMembers([...res.data.users])
+      setTeam(res.data.team)
     })
     .catch(err => {
       alert(err)
     })
+
+    request.get('/admin/getTeams')
+            .then((res) => {
+                if(!res.data){
+                    return 
+                }
+                setTeams([...res.data])
+            })
+            .catch((err) => {
+                alert(err)
+            })
 
 
   },[])
@@ -56,11 +61,23 @@ const TeamPage = () => {
 
   useEffect(()=>{
     
-    // request.get(`/admin/`)
+
+    request.get(`/task/team/${params.id}`)
+    .then((res) => {
+      if(!res.data) return 
+
+      setAllTasks([...res.data])
+    })
+    .catch(err => {
+      console.log(err)
+    })
+
     const filteredMembers = teamMembers.filter(member =>
       member.name.toLowerCase().includes(searchText.toLowerCase())
     );
     setFilteredTeamMembers(filteredMembers);
+
+
     
   },[teamMembers]);
 
@@ -91,10 +108,10 @@ const TeamPage = () => {
     setSearchText('');
   };
 
-  const handleMemberClick = (memberName) => {
-    setSelectedMember(memberName.toLowerCase());
-    const member = teamMembers.find(member => member.name.toLowerCase() === memberName.toLowerCase());
-    if(memberName === "") return;
+  const handleMemberClick = (memberId) => {
+    setSelectedMember(memberId);
+    const member = teamMembers.find(member => member.id === memberId);
+    if(memberId === "") return;
     setModalMember(member);
     setShowModal(true);
   };
@@ -132,7 +149,7 @@ const TeamPage = () => {
   const filteredTasks = allTasks.filter(task => (
     (filterPriority === '' || task.priority.toLowerCase() === filterPriority) &&
     (filterStatus === '' || task.status.toLowerCase() === filterStatus) &&
-    (selectedMember === '' || task.assigned_to.toLowerCase() === selectedMember)
+    (selectedMember === '' || task.assignedTo.id === selectedMember)
   ));
 
   const sortedTasks = getSortedTasks();
@@ -149,14 +166,14 @@ const TeamPage = () => {
                 All Members
               </li>
               {filteredTeamMembers.map((member, index) => (
-                <li key={index} className="list-group-item cursor-pointer" onClick={() => handleMemberClick(member.name)}>
+                <li key={index} className="list-group-item cursor-pointer" onClick={() => handleMemberClick(member.id)}>
                   {member.name}
                 </li>
               ))}
             </ul>
           </div>
           <AddTeamMember  teamMembers={teamMembers} setTeamMembers={setTeamMembers} teamId = {params.id}/>
-          <CreateTask teamMembers={teamMembers}/>
+          <CreateTask teamMembers={teamMembers} allTasks = {allTasks} setAllTasks={setAllTasks}/>
         </div>
         <div className="col-md-9">
           <div className="row mb-3">
@@ -188,7 +205,7 @@ const TeamPage = () => {
               <button className="btn btn-outline-secondary" onClick={clearFilters}>Clear Filters</button>
             </div>
           </div>
-          <Tasks sortedTasks={sortedTasks} teamMembers={teamMembers}/>
+          <Tasks sortedTasks={sortedTasks} teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
         </div>
       </div>
       <UserCard
@@ -197,6 +214,9 @@ const TeamPage = () => {
         member={modalMember}
         teamMembers = {teamMembers}
         setTeamMembers = {setTeamMembers}
+        team = {team}
+        loggedUser = {loggedUser}
+        teams = {teams}
       />
     </div>
   );
