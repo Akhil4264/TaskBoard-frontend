@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import request from '../request'
 
-const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, loggedUser, team, teams }) => {
+const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, loggedUser, team, teams}) => {
   const [editingTeam, setEditingTeam] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState("");
 
@@ -118,13 +118,13 @@ const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, logg
                 ) : (
                   <>
                     {/* {team.title} */}
-                    {loggedUser && loggedUser.role === "admin" && <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Change Team</button>}
+                    {loggedUser && loggedUser.role.includes("ROLE_ADMIN")&& <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Change Team</button>}
                   </>
                 )}
               </div>
               <p><strong>Email:</strong> {member.email}</p>
-              {loggedUser.role==="admin" && <button className="btn btn-primary ms-2" onClick={() => handleRemoveUser(member.id)}>Remove User From Team</button>}
-              {loggedUser.role==="admin" && <button className="btn btn-primary ms-2" onClick={() => ToggleStatus()}>{member.role === "admin" ? "remove as admin" : "make admin"}</button>}
+              {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => handleRemoveUser(member.id)}>Remove User From Team</button>}
+              {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => ToggleStatus()}>{member.role === "admin" ? "remove as admin" : "make admin"}</button>}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={closeModal}>Close</button>

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import request from '../request';
+import { useNavigate } from 'react-router';
 
 const CreateTeam = ({teams,setTeams}) => {
+  const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [teamDescription, setTeamDescription] = useState('');
@@ -13,7 +15,22 @@ const CreateTeam = ({teams,setTeams}) => {
     console.log('Team Name:', teamName);
     console.log('Team Description:', teamDescription);
     try{
-      const res = await request.post('/admin/createTeam',{teamName,teamDescription})
+      const res = await request.post('/admin/createTeam',{teamName,teamDescription,token:localStorage.getItem("token")})
+      if(res.data.tokenMsg){
+        navigate("/")
+        return 
+      }
+      if(res.data.InvalidToken || res.data.ExpiredToken){
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+      }
+      if(res.data.accessStatus){
+        alert(res.data.accessStatus)
+      }
+      if(res.data.error){
+        alert(res.data.error)
+      }
       if(res.status !== 200){
         handleClose();
         alert(res.data.message || 'An error occurred');

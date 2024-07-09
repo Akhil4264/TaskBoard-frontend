@@ -84,7 +84,7 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
                 <p className="card-text"><strong>Status:</strong> {task.status}</p>
                 <p className="card-text"><strong>Assigned Date:</strong> {task.assignedDate}</p>
                 <p className="card-text"><strong>Description:</strong> {task.description}</p>
-                <p className="card-text"><strong>Assigned To:</strong> {task.assignedTo.name}</p>
+                <p className="card-text"><strong>Assigned To:</strong> {task.assignedTo.name ? task.assignedTo.name : "user"}</p>
                 <p className="card-text"><strong>Deadline:</strong> {task.deadline}</p>
                 {task.attachments && task.attachments.length > 0 &&
                   <div className="attachments">

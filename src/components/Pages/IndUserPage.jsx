@@ -6,18 +6,18 @@ import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
 import UserCard from '../Blocks/UserCard';
 import request from '../request'
-import { useParams } from 'react-router';
+import Header from '../Sections/Header';
+import { useNavigate, useParams } from 'react-router';
 
 const TeamPage = () => {
 
   const params = useParams()
+  const navigate = useNavigate()
 
-  const [loggedUser, setloggedUser] = useState({
-    "role": "admin"
-  })
+  const [loggedUser, setloggedUser] = useState()
 
   const [allTasks,setAllTasks] = useState([]);
-  const [indUser, setIndUser] = useState({ name: 'John Doe', team: '', email: 'john@example.com' })
+  const [indUser, setIndUser] = useState()
   const [teamMembers, setTeamMembers] = useState([]);
   const [teams,setTeams] = useState([])
   const [team,setTeam] = useState()
@@ -30,9 +30,53 @@ const TeamPage = () => {
   const [modalMember, setModalMember] = useState({});
 
 
-
   useEffect(() => {
-    request.get('/admin/getTeams')
+    const fetchData = async () => {
+      try{
+        const res = await request.post(`/getUser/${params.id}`,{token : localStorage.getItem("token")})
+        console.log(res.data)
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          return
+        }
+        if (res.data.tokenMsg) {
+          console.log(res.data)
+          navigate('/')
+          return
+        }
+        if(res.data.InvalidToken || res.data.ExpiredToken){
+          localStorage.removeItem("token")
+          navigate('/')
+          return 
+        }
+        if(!res.data.loggedUser.role.includes('ROLE_ADMIN')){
+          // localStorage.removeItem("token")
+          navigate("/") 
+          return 
+        }
+        if (res.data.user && res.data.loggedUser) {
+          setloggedUser({...res.data.loggedUser})
+          setIndUser({...res.data.user})
+          setTeam(res.data.team)
+          res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
+          request.get(`/task/user/${res.data.user.id}`)
+            .then((res) => {
+              console.log(res.data)
+              setAllTasks([...res.data.teamTasks])
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        }
+        
+      }
+      catch(e){
+        console.log(e)
+      }
+
+    }
+    fetchData()
+    request.get('/admin/getTeams',{token : localStorage.getItem("token")})
             .then((res) => {
                 if(!res.data){
                     return 
@@ -42,29 +86,9 @@ const TeamPage = () => {
             .catch((err) => {
                 alert(err)
             })
+  }, [])
 
 
-    request.get(`/getUser/${params.id}`)
-    .then((res) => {
-      console.log(res.data)
-      setIndUser(res.data.user)
-      setTeamMembers([res.data.user])
-    })
-    .catch(err => {
-      console.log(err)
-    })
-
-    request.get(`/task/user/${params.id}`)
-    .then((res) => {
-      console.log(res.data)
-      setAllTasks([...res.data.teamTasks])
-    })
-    .catch(err => {
-      console.log(err)
-    })
-
-
-  },[])
 
 
   const filterTasksByPriority = (priority) => {
@@ -130,6 +154,8 @@ const TeamPage = () => {
   const sortedTasks = getSortedTasks();
 
   return (
+    <>
+      <Header loggedUser={loggedUser} setloggedUser={setloggedUser} />
     <div className="container">
       <div className="row mt-4">
         <div className="col-md-3 border rounded ">
@@ -172,6 +198,7 @@ const TeamPage = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

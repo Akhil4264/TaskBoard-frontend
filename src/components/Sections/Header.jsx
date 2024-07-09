@@ -1,22 +1,32 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 
-const Header = ({ username, firstName, lastName, email }) => {
-    const initials = username ? `${firstName.charAt(0)}${lastName.charAt(0)}` : 'U'; // First letters of first and last names
+const Header = ({ loggedUser, setloggedUser }) => {
+    const navigate = useNavigate()
+    const logout = () => {
+        setloggedUser(null);
+        navigate("/")
+        localStorage.removeItem("token")
+    };
+
+    const initials = loggedUser && loggedUser.name ? `${loggedUser.name.charAt(0)}` : 'U';
 
     return (
-        <div className="d-flex align-items-center justify-content-between bg-light p-3">
-            <div className="d-flex align-items-center">
-                <div className="me-3">
-                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', fontSize: '1.2rem' }}>
-                        {initials}
+        loggedUser && loggedUser.name ? (
+            <div className="d-flex align-items-center justify-content-between bg-light p-3">
+                <div className="d-flex align-items-center">
+                    <div className="me-3">
+                        <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px', fontSize: '1.2rem' }}>
+                            {initials}
+                        </div>
                     </div>
+                    <div className="text-dark">Hi, <strong>{loggedUser.name}</strong></div>
                 </div>
-                <div className="text-dark">Hi, <strong>{username}</strong></div>
+                <button className="btn btn-light text-primary" onClick={logout}>
+                    Logout
+                </button>
             </div>
-            <button className="btn btn-light text-primary">
-                Logout
-            </button>
-        </div>
+        ) : null
     );
 }
 

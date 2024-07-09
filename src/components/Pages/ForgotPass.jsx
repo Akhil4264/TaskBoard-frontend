@@ -8,7 +8,6 @@ function ForgotPassword() {
 
     return (
         <div className="d-flex align-items-center justify-content-center vh-100 text-white" style={{ backgroundImage: "url('/bg/image1.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-            {/* Increase the maxWidth and adjust padding if needed */}
             <div className="p-5 shadow rounded" style={{ maxWidth: '500px', position: 'absolute', top: '300px', left: '300px' }}>
                 <h1 className="fs-3 fw-bold text-center mb-3">Forgot Password</h1>
                 <form action="/send-otp" method="post">

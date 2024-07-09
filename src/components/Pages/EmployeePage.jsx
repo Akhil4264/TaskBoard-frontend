@@ -6,15 +6,19 @@ import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
 import request from '../request'
 
+import Header from '../Sections/Header'
+import { useNavigate } from 'react-router';
+
 
 
 const TeamPage = () => {
+  const navigate = useNavigate()
   const [loggedUser,setloggedUser] = useState({
     "id" : 2,
     "team_id" : 1,
     "name" : "adkjhsd",
     "email" : "akhildekarla45@gmail.com",
-    "role" : "user"
+    "role" : ["ROLE_ADMIN","ROLE_USER"]
   })
 
   const [team,setTeam] = useState()
@@ -39,26 +43,95 @@ const TeamPage = () => {
     // change tasks
   },[teamMembers, searchText]);
 
-  useEffect(()=>{
-    request.get(`/getUser/${loggedUser.id}`)
-      .then((res) => {
-        console.log(res.data)
-        setTeam(res.data.team)
-        res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
-      })
-      .catch(err => {
-        console.log(err)
-    })
+  // useEffect(()=>{
+  //   request.get(`/getUser`,{token : localStorage.getItem("token")})
+  //     .then((res) => {
+  //       console.log(res.data)
+  //       setTeam(res.data.team)
+  //       res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
+  //     })
+  //     .catch(err => {
+  //       console.log(err)
+  //   })
 
-    request.get(`/task/user/${loggedUser.id}`)
-    .then((res) => {
-      console.log(res.data)
-      setAllTasks([...res.data.teamTasks])
-    })
-    .catch(err => {
-      console.log(err)
-    })
-  },[])
+  //   request.get(`/task/user/${loggedUser.id}`)
+  //   .then((res) => {
+  //     console.log(res.data)
+  //     setAllTasks([...res.data.teamTasks])
+  //   })
+  //   .catch(err => {
+  //     console.log(err)
+  //   })
+  // },[])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try{
+        const res = await request.post(`/getUser`,{token : localStorage.getItem("token")})
+        console.log(res.data)
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          return
+        }
+        if (res.data.tokenMsg) {
+          console.log(res.data)
+          navigate('/')
+          return
+        }
+        if(res.data.InvalidToken || res.data.ExpiredToken){
+          localStorage.removeItem("token")
+          navigate('/')
+          return 
+        }
+        if (res.data.user) {
+          setloggedUser({...res.data.user})
+          setTeam(res.data.team)
+          res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
+          request.get(`/task/user/${res.data.user.id}`)
+            .then((res) => {
+              console.log(res.data)
+              setAllTasks([...res.data.teamTasks])
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        }
+        
+      }
+      catch(e){
+        console.log(e)
+      }
+
+      // try {
+      //   const res = await request.post('/api/checkToken', { token: localStorage.getItem("token") })
+      //   if (res.data.InvalidToken || res.data.ExpiredToken) {
+      //     localStorage.removeItem("token")
+      //     return
+      //   }
+      //   if (res.data.tokenMsg) {
+      //     console.log(res.data)
+      //     return
+      //   }
+      //   if (res.data.user) {
+      //     // console.log(res.data)
+      //     setloggedUser({...res.data.user})
+      //     request.get(`/task/user/${res.data.user.id}`)
+      //       .then((res) => {
+      //         console.log(res.data)
+      //         setAllTasks([...res.data.teamTasks])
+      //       })
+      //       .catch(err => {
+      //         console.log(err)
+      //       })
+      //   }
+      // }
+      // catch (err) {
+      //   console.log(err)
+      // }
+
+    }
+    fetchData()
+  }, [])
 
 
   const handleSearch = (event) => {
@@ -135,69 +208,72 @@ const TeamPage = () => {
   const sortedTasks = getSortedTasks();
 
   return (
-    <div className="container">
-      <div className="row mt-4">
-        <div className="col-md-3">
-          <h3>Team Members</h3>
-          <div className="member-list" >
-            {team && <input type="text" className="form-control mb-3" placeholder="Search members by name"  onChange={handleSearch} />}
-            <ul className="list-group" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {team && <li className="list-group-item cursor-pointer" onClick={() => handleMemberClick('')}>
-                All Members
-              </li>}
-              {filteredTeamMembers.map((member, index) => (
-                <li key={index} className="list-group-item cursor-pointer" onClick={() => handleMemberClick(member.name)}>
-                  {member.name}
-                </li>
-              ))}
-            </ul>
+    <>
+      <Header loggedUser={loggedUser} setloggedUser={setloggedUser} />
+      <div className="container">
+        <div className="row mt-4">
+          <div className="col-md-3">
+            <h3>Team Members</h3>
+            <div className="member-list" >
+              {team && <input type="text" className="form-control mb-3" placeholder="Search members by name"  onChange={handleSearch} />}
+              <ul className="list-group" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {team && <li className="list-group-item cursor-pointer" onClick={() => handleMemberClick('')}>
+                  All Members
+                </li>}
+                {filteredTeamMembers.map((member, index) => (
+                  <li key={index} className="list-group-item cursor-pointer" onClick={() => handleMemberClick(member.name)}>
+                    {member.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <AddTeamMember  teamMembers={teamMembers} setTeamMembers={setTeamMembers}/>}
+            <CreateTask teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
           </div>
-          {loggedUser && loggedUser.role==="admin" && <AddTeamMember  teamMembers={teamMembers} setTeamMembers={setTeamMembers}/>}
-          <CreateTask teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
-        </div>
-        <div className="col-md-9">
-          <div className="row mb-3">
-            <div className="col">
-              <select className="form-select" value={filterPriority} onChange={(e) => filterTasksByPriority(e.target.value)}>
-                <option value="">Filter by Priority</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
+          <div className="col-md-9">
+            <div className="row mb-3">
+              <div className="col">
+                <select className="form-select" value={filterPriority} onChange={(e) => filterTasksByPriority(e.target.value)}>
+                  <option value="">Filter by Priority</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div className="col">
+                <select className="form-select" value={filterStatus} onChange={(e) => filterTasksByStatus(e.target.value)}>
+                  <option value="">Filter by Status</option>
+                  <option value="ongoing">Ongoing</option>
+                  <option value="not started">Not Started</option>
+                  <option value="done">Done</option>
+                </select>
+              </div>
+              <div className="col">
+                <select className="form-select" value={sortBy} onChange={handleSortChange}>
+                  <option value="">Sort by</option>
+                  <option value="assigned_date">Assigned Date</option>
+                  <option value="priority">Priority</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
+              <div className="col">
+                <button className="btn btn-outline-secondary" onClick={clearFilters}>Clear Filters</button>
+              </div>
             </div>
-            <div className="col">
-              <select className="form-select" value={filterStatus} onChange={(e) => filterTasksByStatus(e.target.value)}>
-                <option value="">Filter by Status</option>
-                <option value="ongoing">Ongoing</option>
-                <option value="not started">Not Started</option>
-                <option value="done">Done</option>
-              </select>
-            </div>
-            <div className="col">
-              <select className="form-select" value={sortBy} onChange={handleSortChange}>
-                <option value="">Sort by</option>
-                <option value="assigned_date">Assigned Date</option>
-                <option value="priority">Priority</option>
-                <option value="status">Status</option>
-              </select>
-            </div>
-            <div className="col">
-              <button className="btn btn-outline-secondary" onClick={clearFilters}>Clear Filters</button>
-            </div>
+            <Tasks sortedTasks={sortedTasks} teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
           </div>
-          <Tasks sortedTasks={sortedTasks} teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
         </div>
+        <UserCard
+          show={showModal}
+          handleClose={() => setShowModal(false)}
+          member={modalMember}
+          teamMembers = {teamMembers}
+          setTeamMembers = {setTeamMembers}
+          loggedUser = {loggedUser}
+          team = {team}
+        />
       </div>
-      <UserCard
-        show={showModal}
-        handleClose={() => setShowModal(false)}
-        member={modalMember}
-        teamMembers = {teamMembers}
-        setTeamMembers = {setTeamMembers}
-        loggedUser = {loggedUser}
-        team = {team}
-      />
-    </div>
+    </>
   );
 };
 

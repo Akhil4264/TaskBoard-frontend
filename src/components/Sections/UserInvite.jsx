@@ -16,7 +16,7 @@ const UserInvite = ({indUsers,setIndUsers}) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await request.post('admin/inviteUser', { email, fullName: name });
+      const res = await request.post('admin/inviteUser', { email, fullName: name,token : localStorage.getItem("token") });
       if (res.status !== 200) {
         handleCloseModal();
         alert(res.data.message || 'An error occurred');

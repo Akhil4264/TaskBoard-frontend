@@ -23,7 +23,7 @@ const UserCard = ({ member, loggedUser , teams }) => {
     };
     return (
         <div>
-            <p><strong>Name:</strong> {member.name}</p>
+            <p><strong>Name:</strong> {member && member.name ? member.name : "user"}</p>
             <div className="mb-3">
                 <strong>Team:</strong>&nbsp;
                 {editingTeam ? (
@@ -39,12 +39,12 @@ const UserCard = ({ member, loggedUser , teams }) => {
                     </>
                 ) : (
                     <>
-                        {member.team}
+                        {member && member.team ? member.team.name : ""}
                         <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Move to a Team</button>
                     </>
                 )}
             </div>
-            <p><strong>Email:</strong> {member.email}</p>
+            {member && member.email && <p><strong>Email:</strong> {member.email}</p>}
         </div>
     )
 }

@@ -1,11 +1,73 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import request from '../request';
+import { useNavigate } from 'react-router';
 
 function LoginPage() {
+  const navigate = useNavigate()
+  const [error, setError] = useState('');
+  useEffect(() => {
+    request.post('/api/checkToken',{token : localStorage.getItem("token")})
+    .then((res) => {
+      
+      if(res.data.InvalidToken || res.data.ExpiredToken){
+        localStorage.removeItem("token")
+        return 
+      }
+      if(res.data.tokenMsg){
+        console.log(res.data)
+        return 
+      }
+      if(res.data.user && res.data.user.role.includes("ROLE_ADMIN")){
+        navigate('/admin')
+        return 
+      }
+      else if(res.data.user && res.data.user.role.includes("ROLE_USER")){
+        navigate('/employee')
+        return 
+      }
+
+      
+
+    })
+    .catch(err => {
+      // alert(err)
+      if(err.response.status === 401){
+        console.log("Token expired")
+        localStorage.removeItem("token")
+      }
+      console.log(err)
+    })
+  },[])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Capture form data
+    const formData = {
+      email: e.target.email.value,
+      password: e.target.password.value,
+      token : localStorage.getItem("token")
+    };
+
+    try {
+      const res = await request.post(`/api/login_check`, formData);
+      if(res.data && res.data.token){
+        localStorage.setItem("token",res.data.token)
+        if(res.data.redirect === '/api/admin' || res.data.redirect === '/admin') navigate('/admin')
+        else if(res.data.redirect === '/api/home' || res.data.redirect === '/employee') navigate('/employee')
+      }
+    }
+    catch(e){
+      console.log(e)
+    }
+  };
+
   return (
     <div style={styles.body}>
       <div className="content" style={styles.content}>
         <h1 className="title" style={styles.title}>TaskBoard</h1>
-        <form action="/login" method="post">
+        {error && <p style={styles.error}>{error}</p>}
+        <form onSubmit={handleSubmit} method="post">
           <div className="form-group m-1">
             <label htmlFor="email" style={styles.label}>Email:</label>
             <input type="text" id="email" name="email" className="form-control" required />
@@ -14,20 +76,7 @@ function LoginPage() {
             <label htmlFor="password" style={styles.label}>Password:</label>
             <input type="password" id="password" name="password" className="form-control" required />
           </div>
-          <div className="form-group m-1">
-            <label style={styles.label}>Role:</label>
-            <div>
-              <span style={styles.inlineBlock}>
-                <input type="radio" id="role_admin" name="role" value="Admin" />
-                <label htmlFor="role_admin" style={styles.radioLabel}>Admin</label>
-              </span>
-              <span style={styles.inlineBlock}>
-                <input type="radio" id="role_employee" name="role" value="Employee" defaultChecked />
-                <label htmlFor="role_employee" style={styles.radioLabel}>Employee</label>
-              </span>
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary" style={styles.loginButton}>Login</button>
+          <button type="submit" className="btn btn-primary mt-3" style={styles.loginButton}>Login</button>
           <a href="/forgot-password" style={styles.loginLink}>Forgot password?</a>
         </form>
       </div>
@@ -79,12 +128,6 @@ const styles = {
     fontWeight: 'bold',
     marginBottom: '5px',
   },
-  label1: {
-    display: 'block',
-    color: '#fff',
-    fontWeight: 'bold',
-    marginBottom: '2px',
-  },
   inlineBlock: {
     display: 'inline-block',
     marginRight: '5px',
@@ -104,6 +147,12 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     transition: 'background-color 0.3s',
+  },
+  error: {
+    color: 'red',
+    fontWeight: 'bold',
+    marginBottom: '10px',
+    textAlign: 'center',
   },
 };
 

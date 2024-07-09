@@ -55,19 +55,25 @@ function AdminTeams() {
                     return 
                 }
                 setTeams([...res.data])
-                // console.log(res.data)
             })
             .catch((err) => {
-                alert(err)
+                // alert(err)
+                console.log(err)
             })
 
         }
         getTeams()
     },[])
     return (
-        <div className="container p-4" >
-            <h2 className="mb-4">Teams</h2>
-            <div className="row row-cols-1 row-cols-md-4 g-4 p-2" style={{ maxHeight: '800px', overflowY: 'auto' }}>
+        <div className="container bg-light p-4" >
+            <div className='d-flex  justify-content-between'>
+                <h2 className="mb-4">Teams</h2>
+                <div className=''>
+                    <CreateTeam teams={teams} setTeams={setTeams}/>
+                </div>
+            </div>
+            <div className='container bg-light' style={{height : '800px'}}>
+            <div className="row row-cols-1 row-cols-md-4 g-4 p-2 rounded" style={{ maxHeight: '800px', overflowY: 'auto' }}>
                 {teams.map(team => (
                     <div key={team.id} className="col">
                         <a href={`/admin/teams/${team.id}`} className="card text-decoration-none text-dark " style={{ width: '18rem' }}>
@@ -81,8 +87,9 @@ function AdminTeams() {
                     </div>
                 ))}
             </div>
-            <div className='col-md-6'>
-                <CreateTeam teams={teams} setTeams={setTeams}/>
+            </div>
+            <div className='col-md-6 m-1'>
+                
               </div>
         </div>
     );

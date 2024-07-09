@@ -78,7 +78,7 @@ const AddTeamMember = (props) => {
               <ul className="list-group">
                 {users.map((user) => (
                   <li key={user.id} className="list-group-item d-flex justify-content-between align-items-center">
-                    {user.name}
+                    {user.name ? user.name : "user"}
                     <button
                       className={`btn ${selectedUsers.some((member) => member.id === user.id) ? 'btn-danger' : 'btn-success'}`}
                       onClick={() => handleToggleMember(user)}

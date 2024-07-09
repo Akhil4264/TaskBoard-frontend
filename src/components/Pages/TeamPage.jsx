@@ -6,15 +6,14 @@ import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
 import request from '../request'
 import {useParams } from 'react-router';
+import Header from '../Sections/Header'
 
 
 // admin/showTeam/{id}
 
 
 const TeamPage = () => {
-  const[loggedUser,setloggedUser] = useState({
-    "role" : "admin"
-  })
+  const[loggedUser,setloggedUser] = useState()
   const params = useParams()
   const [allTasks,setAllTasks] = useState([]);
 
@@ -34,13 +33,15 @@ const TeamPage = () => {
 
   useEffect(() => {
 
-    request.get(`/admin/getTeam/${params.id}`)
+    request.post(`/admin/getTeam/${params.id}`,{token : localStorage.getItem("token")})
     .then((res) => {
+      console.log(res.data)
+      setloggedUser({...res.data.user})
       setTeamMembers([...res.data.users])
       setTeam(res.data.team)
     })
     .catch(err => {
-      alert(err)
+      console.log(err)
     })
 
     request.get('/admin/getTeams')
@@ -73,7 +74,7 @@ const TeamPage = () => {
     })
 
     const filteredMembers = teamMembers.filter(member =>
-      member.name.toLowerCase().includes(searchText.toLowerCase())
+      member.name && member.name.toLowerCase().includes(searchText.toLowerCase())
     );
     setFilteredTeamMembers(filteredMembers);
 
@@ -155,6 +156,8 @@ const TeamPage = () => {
   const sortedTasks = getSortedTasks();
 
   return (
+    <>
+      <Header loggedUser={loggedUser} setloggedUser={setloggedUser}/>
     <div className="container">
       <div className="row mt-4">
         <div className="col-md-3">
@@ -167,7 +170,7 @@ const TeamPage = () => {
               </li>
               {filteredTeamMembers.map((member, index) => (
                 <li key={index} className="list-group-item cursor-pointer" onClick={() => handleMemberClick(member.id)}>
-                  {member.name}
+                  {member.name ? member.name : "user"}
                 </li>
               ))}
             </ul>
@@ -219,6 +222,7 @@ const TeamPage = () => {
         teams = {teams}
       />
     </div>
+    </>
   );
 };
 

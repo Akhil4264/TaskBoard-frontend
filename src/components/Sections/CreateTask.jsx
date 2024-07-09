@@ -88,9 +88,9 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
                 <div className="form-group m-2">
                   <label htmlFor="priority">Priority</label>
                   <select className="form-control" id="priority" value={priority} onChange={(e) => setPriority(e.target.value)} required>
-                    <option key="1" value="high">High</option>
-                    <option key="2" value="medium">Medium</option>
-                    <option key="3" value="low">Low</option>
+                    <option key="1" value="High">High</option>
+                    <option key="2" value="Medium">Medium</option>
+                    <option key="3" value="Low">Low</option>
                   </select>
                 </div>
                 <div className="form-group m-2">
@@ -103,7 +103,7 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
                     <option value="" disabled>Select...</option>
                     {teamMembers.map((mem) => (
                       <option key={mem.id} value={mem.id}>
-                        {mem.name}
+                        {mem.name ? mem.name : "user"}
                       </option>
                     ))}
                   </select>
