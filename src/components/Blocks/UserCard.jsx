@@ -3,7 +3,7 @@ import request from '../request'
 import { useNavigate } from 'react-router';
 
 
-const UserCard = ({ member, loggedUser , teams }) => {
+const UserCard = ({ member,setmember, loggedUser , teams }) => {
     console.log(member)
     const [editingTeam, setEditingTeam] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState("");
@@ -42,6 +42,50 @@ const UserCard = ({ member, loggedUser , teams }) => {
             console.log(err)
         })
     };
+
+    const ToggleStatus = () => {
+        request.post(`/admin/toggleRole/${member.id}`,{token : localStorage.getItem("token")})
+          .then((res) => {
+            console.log(res.data);
+            if (res.data.tokenMsg) {
+              console.log(res.data.tokenMsg)
+              navigate("/")
+              return
+            }
+            if (res.data.InvalidToken || res.data.ExpiredToken) {
+              localStorage.removeItem("token")
+              navigate("/")
+              return
+              // console.log(res.data.InvalidToken)
+            }
+            if (res.data.accessStatus) {
+              // alert("access denied")
+              alert(res.data.accessStatus)
+              return
+            }
+            if (res.data.error) {
+              // alert("access denied")
+              alert(res.data.error)
+              return
+            }
+            if (res.data.message) {
+              // handleClose()
+            //   setTeamMembers(teamMembers.map((ele) => {
+            //     return ele.id === member.id ? { ...ele, role: res.data.roles } : ele
+            //   }))
+                setmember({...member,role:res.data.roles})
+            //   member.role = res.data.roles
+              
+              console.log(member)
+              // toast.success(res.data.message)
+              return ;
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+            alert("Error changing role of the user")
+          });
+      };
     return (
         <div>
             <p><strong>Name:</strong> {member && member.name ? member.name : "user"}</p>
@@ -66,6 +110,7 @@ const UserCard = ({ member, loggedUser , teams }) => {
                 )}
             </div>
             {member && member.email && <p><strong>Email:</strong> {member.email}</p>}
+            {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => ToggleStatus()}>{member &&member.role && member.role.includes("ROLE_ADMIN") ? "remove as admin" : "make admin"}</button>}
         </div>
     )
 }

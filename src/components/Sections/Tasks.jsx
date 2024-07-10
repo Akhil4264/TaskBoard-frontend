@@ -130,8 +130,8 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
   };
 
   return (
-    <div className='border rounded' style={{height : '800px'}}>
-      <div className="row row-cols-1 row-cols-md-3 g-4 p-4" style={{maxHeight : '800px',overflowY : 'auto'}}>
+    <div className='border rounded' >
+      <div className="row row-cols-1 row-cols-md-3 g-4 p-4">
         {sortedTasks.length >0 && sortedTasks.map(task => (
           <div key={task.id} className="col">
             <div className="card h-100" onClick={() => handleTaskClick(task)} style={{ cursor: 'pointer' }}>

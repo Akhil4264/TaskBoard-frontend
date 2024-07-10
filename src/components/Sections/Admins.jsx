@@ -25,7 +25,7 @@ const Admins = () => {
                     alert("access denied")
                     return 
                 }
-                // console.log("admin : ",res.data)
+                console.log("admin : ",res.data)
 
         
                 setAdmins([...res.data])
@@ -56,7 +56,7 @@ const Admins = () => {
                 <ul className="list-group">
                     {admins.map((user) => (
                         <li key={user.id} className="list-group-item">
-                            <Link to={user.team ? `/admin/team/${user.team.id}` : `/admin/user/${user.id}`} className='text-decoration-none'>
+                            <Link to={user.team ? `/admin/teams/${user.team.id}` : `/admin/user/${user.id}`} className='text-decoration-none'>
                                 <div className="d-flex align-items-center">
                                     <span style={{color : 'black'}}>{user.name ? user.name : "user"}</span>
                                 </div>

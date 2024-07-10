@@ -181,7 +181,7 @@ const TeamPage = () => {
       <div className="row mt-4">
         <div className="col-md-3 border rounded ">
           <div>
-            <UserCard member={indUser} loggedUser={loggedUser} teams={teams}/>
+            <UserCard member={indUser} setmember={setIndUser} loggedUser={loggedUser} teams={teams}/>
             <CreateTask teamMembers={teamMembers} allTasks={allTasks} setAllTasks={setAllTasks}/>
           </div>
         </div>
