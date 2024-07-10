@@ -13,13 +13,7 @@ import { useNavigate } from 'react-router';
 
 const TeamPage = () => {
   const navigate = useNavigate()
-  const [loggedUser,setloggedUser] = useState({
-    "id" : 2,
-    "team_id" : 1,
-    "name" : "adkjhsd",
-    "email" : "akhildekarla45@gmail.com",
-    "role" : ["ROLE_ADMIN","ROLE_USER"]
-  })
+  const [loggedUser,setloggedUser] = useState()
 
   const [team,setTeam] = useState()
   const [allTasks,setAllTasks] = useState([]);
@@ -42,27 +36,6 @@ const TeamPage = () => {
     
     // change tasks
   },[teamMembers, searchText]);
-
-  // useEffect(()=>{
-  //   request.get(`/getUser`,{token : localStorage.getItem("token")})
-  //     .then((res) => {
-  //       console.log(res.data)
-  //       setTeam(res.data.team)
-  //       res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
-  //     })
-  //     .catch(err => {
-  //       console.log(err)
-  //   })
-
-  //   request.get(`/task/user/${loggedUser.id}`)
-  //   .then((res) => {
-  //     console.log(res.data)
-  //     setAllTasks([...res.data.teamTasks])
-  //   })
-  //   .catch(err => {
-  //     console.log(err)
-  //   })
-  // },[])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,8 +60,29 @@ const TeamPage = () => {
           setloggedUser({...res.data.user})
           setTeam(res.data.team)
           res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
-          request.get(`/task/user/${res.data.user.id}`)
+          request.post(`/task/user/${res.data.user.id}`,{token : localStorage.getItem("token")})
             .then((res) => {
+              if (res.data.tokenMsg) {
+                console.log(res.data.tokenMsg)
+                navigate("/")
+                return
+              }
+              if (res.data.InvalidToken || res.data.ExpiredToken) {
+                localStorage.removeItem("token")
+                navigate("/")
+                return
+                // console.log(res.data.InvalidToken)
+              }
+              if (res.data.accessStatus) {
+                // alert("access denied")
+                alert(res.data.accessStatus)
+                return
+              }
+              if (res.data.error) {
+                // alert("access denied")
+                alert(res.data.error)
+                return
+              }
               console.log(res.data)
               setAllTasks([...res.data.teamTasks])
             })
@@ -213,7 +207,7 @@ const TeamPage = () => {
       <div className="container">
         <div className="row mt-4">
           <div className="col-md-3">
-            <h3>Team Members</h3>
+            {loggedUser && loggedUser.team && <h3>Team Members</h3>}
             <div className="member-list" >
               {team && <input type="text" className="form-control mb-3" placeholder="Search members by name"  onChange={handleSearch} />}
               <ul className="list-group" style={{ maxHeight: '400px', overflowY: 'auto' }}>

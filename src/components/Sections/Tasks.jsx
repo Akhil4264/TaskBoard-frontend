@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import request from '../request'
+import { useNavigate } from 'react-router';
 
 const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
+
+  const navigate = useNavigate()
+
   const [selectedTask, setSelectedTask] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [editedTask, setEditedTask] = useState();
   const tm = teamMembers
+  console.log(allTasks)
 
   const handleTaskClick = (task) => {
     console.log(task)
@@ -17,6 +22,12 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
 
   const handleFieldChange = (e) => {
     const { name, value } = e.target;
+    if(name === "deadline"){
+      console.log("deadline is changing")
+      if(new Date(value) < Date.now()){
+        return ;
+      }
+    }
     setEditedTask({ ...editedTask, [name]: value });
 
   };
@@ -33,9 +44,30 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
 
   const handleDeleteTask = () => {
     // console.log(editedTask)
-    request.post(`/task/${editedTask.id}`)
+    request.post(`/task/${editedTask.id}`,{token : localStorage.getItem("token")})
       .then((res) => {
         console.log(res.data)
+        if (res.data.tokenMsg) {
+          console.log(res.data.tokenMsg)
+          navigate("/")
+          return
+        }
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          navigate("/")
+          return
+          // console.log(res.data.InvalidToken)
+        }
+        if (res.data.accessStatus) {
+          // alert("access denied")
+          alert(res.data.accessStatus)
+          return
+        }
+        if (res.data.error) {
+          // alert("access denied")
+          alert(res.data.error)
+          return
+        }
         setAllTasks(allTasks => allTasks.filter((tsk) => {
           return tsk.id !== editedTask.id
         }))
@@ -54,11 +86,36 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
 
   const handleSubmit = async () => {
 
-    console.log("selected Task : " ,selectedTask)
+    // console.log("selected Task : " ,selectedTask)
     console.log("edited Task : ",editedTask)
+    if(editedTask.title==="" || editedTask.priority==="" || editedTask.status==="" || editedTask.description==="" ||!editedTask.assignedTo){
+      alert("enter valid inputs")
+      return ;
+    }
 
     try {
-      const res = await request.post(`/task/${editedTask.id}/edit`, { ...editedTask })
+      const res = await request.post(`/task/${editedTask.id}/edit`, { ...editedTask ,token : localStorage.getItem('token')})
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       console.log(res.data)
       setAllTasks(allTasks => allTasks.map((tsk) => {
         if(tsk.id === editedTask.id) return editedTask
@@ -73,8 +130,8 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
   };
 
   return (
-    <>
-      <div className="row row-cols-1 row-cols-md-3 g-4">
+    <div className='border rounded' style={{height : '800px'}}>
+      <div className="row row-cols-1 row-cols-md-3 g-4 p-4" style={{maxHeight : '800px',overflowY : 'auto'}}>
         {sortedTasks.length >0 && sortedTasks.map(task => (
           <div key={task.id} className="col">
             <div className="card h-100" onClick={() => handleTaskClick(task)} style={{ cursor: 'pointer' }}>
@@ -114,11 +171,11 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
                   <form>
                     <div className="mb-3">
                       <label htmlFor="title" className="form-label">Title</label>
-                      <input type="text" className="form-control" id="title" name="title" value={editedTask.title} onChange={handleFieldChange} />
+                      <input type="text" className="form-control" id="title" name="title" value={editedTask.title} onChange={handleFieldChange} required/>
                     </div>
                     <div className="mb-3">
                       <label htmlFor="priority" className="form-label">Priority</label>
-                      <select className="form-select" id="priority" name="priority" value={editedTask.priority} onChange={handleFieldChange}>
+                      <select className="form-select" id="priority" name="priority" value={editedTask.priority} onChange={handleFieldChange} required>
                         <option value="High">High</option>
                         <option value="Medium">Medium</option>
                         <option value="Low">Low</option>
@@ -126,7 +183,7 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
                     </div>
                     <div className="mb-3">
                       <label htmlFor="status" className="form-label">Status</label>
-                      <select className="form-select" id="status" name="status" value={editedTask.status} onChange={handleFieldChange}>
+                      <select className="form-select" id="status" name="status" value={editedTask.status} onChange={handleFieldChange} required>
                         <option value="Ongoing">Ongoing</option>
                         <option value="Not Started">Not Started</option>
                         <option value="Done">Done</option>
@@ -138,11 +195,11 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
                     </div>
                     <div className="mb-3">
                       <label htmlFor="description" className="form-label">Description</label>
-                      <textarea className="form-control" id="description" name="description" value={editedTask.description} onChange={handleFieldChange}></textarea>
+                      <textarea className="form-control" id="description" name="description" value={editedTask.description} onChange={handleFieldChange} required></textarea>
                     </div>
                     <div className="mb-3">
                       <label htmlFor="assignedTo" className="form-label">Assigned To</label>
-                      <select className="form-select" id="assignedTo" name="assignedTo" value={editedTask.assignedTo.id} onChange={handleAssignedToChange}>
+                      <select className="form-select" id="assignedTo" name="assignedTo" value={editedTask.assignedTo.id} onChange={handleAssignedToChange} required>
                         {tm.map(member => (
                           <option key={member.id} value={member.id} >{member.name}</option>
                         ))}
@@ -150,7 +207,7 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
                     </div>
                     <div className="mb-3">
                       <label htmlFor="deadline" className="form-label">Deadline</label>
-                      <input type="date" className="form-control" id="deadline" name="deadline" value={editedTask.deadline} onChange={handleFieldChange} />
+                      <input type="date" className="form-control" id="deadline" name="deadline" value={editedTask.deadline} onChange={handleFieldChange} required/>
                     </div>
                   </form>
                 </div>
@@ -168,7 +225,7 @@ const Tasks = ({ sortedTasks, teamMembers, allTasks, setAllTasks }) => {
         <div className="modal-backdrop fade show"></div>
       )}
 
-    </>
+    </div>
   );
 };
 

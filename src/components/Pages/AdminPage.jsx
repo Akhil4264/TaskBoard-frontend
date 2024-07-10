@@ -6,6 +6,7 @@ import UserInvite from '../Sections/UserInvite';
 import CreateTeam from '../Sections/CreateTeam'
 import request from '../request'
 import { useNavigate } from 'react-router';
+import Admins from '../Sections/Admins';
 
 const AdminPage = () => {
   const navigate = useNavigate()
@@ -52,9 +53,12 @@ const AdminPage = () => {
       <div className="container-fluid m-1">
         <div className="row">
           <div className="col-md-3">
-            <IndUsers />
-            <div className='row justify-content-around m-2 p-4'>
-            </div>
+            {/* <div className='d-flex'> */}
+              <IndUsers />
+              <Admins />
+            {/* </div> */}
+            {/* <div className='row justify-content-around m-2 p-4'>
+            </div> */}
           </div>
           <div className="col-md-9">
             <Teams />

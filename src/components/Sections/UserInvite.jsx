@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import request from '../request'
-const UserInvite = ({indUsers,setIndUsers}) => {
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router';
+
+
+
+const UserInvite = ({ indUsers, setIndUsers }) => {
+  const navigate = useNavigate()
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('');
   // const [fname, setFname] = useState('');
@@ -15,25 +22,48 @@ const UserInvite = ({indUsers,setIndUsers}) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await request.post('admin/inviteUser', { email, fullName: name,token : localStorage.getItem("token") });
-      if (res.status !== 200) {
-        handleCloseModal();
-        alert(res.data.message || 'An error occurred');
-        return 
+      handleCloseModal();
+      const res = await request.post('admin/inviteUser', { email, fullName: name, token: localStorage.getItem("token") })
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
       }
-      console.log(res.data);
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
+      // console.log(res.data);
+
+      alert("Please check your inbox for login credentials");
+
       await setIndUsers([...indUsers, res.data.user]);
-      handleCloseModal();
+      // handleCloseModal();
     } catch (error) {
-      console.error(error);
       handleCloseModal();
-      alert(error.response?.data?.message || 'An error occurred');
+      alert("Error In sending mail")
+      // console.log(error);
+      // alert(error.response?.data?.message || 'An error occurred');
     }
   };
 
   return (
     <>
+      <ToastContainer />
       <button className="btn btn-primary " onClick={handleShowModal}>
         Invite User
       </button>
@@ -52,10 +82,6 @@ const UserInvite = ({indUsers,setIndUsers}) => {
 
             <div className="modal-body">
               <form onSubmit={handleSubmit}>
-                {/* <div className="form-group m-2">
-                  <label htmlFor="inputFname" className='mx-1 p-1'>First Name : </label>
-                  <input type="text" className="form-control" id="inputFname" placeholder="Enter First name" value={fname} onChange={(e) => setFname(e.target.value)} required />
-                </div> */}
                 <div className="form-group m-2">
                   <label htmlFor="inputname" className='mx-1 p-1'>Name : </label>
                   <input type="text" className="form-control" id="inputname" placeholder="Enter name" value={name} onChange={(e) => setname(e.target.value)} required />

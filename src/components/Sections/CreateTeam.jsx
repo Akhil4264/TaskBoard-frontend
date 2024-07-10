@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import request from '../request';
 import { useNavigate } from 'react-router';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const CreateTeam = ({teams,setTeams}) => {
   const navigate = useNavigate()
@@ -12,8 +14,7 @@ const CreateTeam = ({teams,setTeams}) => {
   const handleShow = () => setShowModal(true);
 
   const handleSave = async() => {
-    console.log('Team Name:', teamName);
-    console.log('Team Description:', teamDescription);
+    handleClose();
     try{
       const res = await request.post('/admin/createTeam',{teamName,teamDescription,token:localStorage.getItem("token")})
       if(res.data.tokenMsg){
@@ -27,22 +28,19 @@ const CreateTeam = ({teams,setTeams}) => {
       }
       if(res.data.accessStatus){
         alert(res.data.accessStatus)
+        return
       }
       if(res.data.error){
         alert(res.data.error)
+        return
       }
-      if(res.status !== 200){
-        handleClose();
-        alert(res.data.message || 'An error occurred');
-        return 
-      }
-      console.log(res.data)
+      // console.log(res.data)
       setTeams([...teams,res.data.team])
-      handleClose();
+      
     }
     catch(e){
-      handleClose();
-      alert(e);
+      alert("error in creating the team")
+      // console.log(e)
     }
     
     
@@ -50,6 +48,7 @@ const CreateTeam = ({teams,setTeams}) => {
 
   return (
     <>
+      <ToastContainer/>
       <button className="btn btn-primary" onClick={handleShow}>
         Create New Team
       </button>

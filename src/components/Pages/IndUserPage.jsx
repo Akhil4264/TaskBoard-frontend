@@ -59,8 +59,29 @@ const TeamPage = () => {
           setIndUser({...res.data.user})
           setTeam(res.data.team)
           res.data.members.length===0 ? setTeamMembers([res.data.user]) : setTeamMembers([...res.data.members])
-          request.get(`/task/user/${res.data.user.id}`)
+          request.post(`/task/user/${res.data.user.id}`,{token : localStorage.getItem("token")})
             .then((res) => {
+              if (res.data.tokenMsg) {
+                console.log(res.data.tokenMsg)
+                navigate("/")
+                return
+              }
+              if (res.data.InvalidToken || res.data.ExpiredToken) {
+                localStorage.removeItem("token")
+                navigate("/")
+                return
+                // console.log(res.data.InvalidToken)
+              }
+              if (res.data.accessStatus) {
+                // alert("access denied")
+                alert(res.data.accessStatus)
+                return
+              }
+              if (res.data.error) {
+                // alert("access denied")
+                alert(res.data.error)
+                return
+              }
               console.log(res.data)
               setAllTasks([...res.data.teamTasks])
             })
@@ -76,7 +97,7 @@ const TeamPage = () => {
 
     }
     fetchData()
-    request.get('/admin/getTeams',{token : localStorage.getItem("token")})
+    request.post('/admin/getTeams',{token : localStorage.getItem("token")})
             .then((res) => {
                 if(!res.data){
                     return 

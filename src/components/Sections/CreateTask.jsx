@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import request from '../request'
+import { useNavigate } from 'react-router';
 
 const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
+
+  const navigate = useNavigate()
+
   const [showModal, setShowModal] = useState(false);
   const [taskName, setTaskName] = useState('');
-  const [priority, setPriority] = useState('medium');
+  const [priority, setPriority] = useState('');
   const [description, setDescription] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -13,7 +17,7 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
   const handleClose = (e) => {
     e.preventDefault();
     setTaskName('');
-    setPriority('medium');
+    setPriority('');
     setDescription('');
     setAssignedTo('');
     setDeadline('');
@@ -41,7 +45,29 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
         description,
         assignedTo : assignedTo,
         deadline,
+        token : localStorage.getItem("token")
       })
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       // console.log(res.data)
       setAllTasks([...allTasks,res.data])
     }
@@ -51,7 +77,7 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
 
 
     setTaskName('');
-    setPriority('medium');
+    setPriority('');
     setDescription('');
     setAssignedTo('');
     setDeadline('');
@@ -60,13 +86,11 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
   };
 
 
-  const handleDeleteTask = () => {
 
-  }
 
   return (
     <>
-      <button className="btn btn-primary" onClick={handleShow}>
+      <button className="btn btn-primary m-2" onClick={handleShow}>
         Create New Task
       </button>
       {showModal && (
@@ -88,6 +112,7 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
                 <div className="form-group m-2">
                   <label htmlFor="priority">Priority</label>
                   <select className="form-control" id="priority" value={priority} onChange={(e) => setPriority(e.target.value)} required>
+                    <option key="0" value="">Select</option>
                     <option key="1" value="High">High</option>
                     <option key="2" value="Medium">Medium</option>
                     <option key="3" value="Low">Low</option>
@@ -95,7 +120,7 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
                 </div>
                 <div className="form-group m-2">
                   <label htmlFor="description">Description</label>
-                  <textarea className="form-control" id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows="3"></textarea>
+                  <textarea className="form-control" id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows="3" required></textarea>
                 </div>
                 <div className="form-group m-2">
                   <label htmlFor="assignedTo">Assigned To</label>
@@ -110,12 +135,12 @@ const CreateTask = ({ teamMembers,allTasks,setAllTasks }) => {
                 </div>
                 <div className="form-group m-2">
                   <label htmlFor="deadline">Deadline</label>
-                  <input type="date" className="form-control" id="deadline" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+                  <input type="date" className="form-control" id="deadline" value={deadline} onChange={(e) => setDeadline(e.target.value)} required/>
                 </div>
-                <div className="form-group m-2">
+                {/* <div className="form-group m-2">
                   <label htmlFor="attachments">Attachments</label>
                   <input type="file" className="form-control" id="attachments" onChange={(e) => setAttachments(Array.from(e.target.files))} multiple />
-                </div>
+                </div> */}
               </div>
               <div className="modal-footer">
                 <button type="submit" className="btn btn-primary">

@@ -5,14 +5,17 @@ import CreateTask from '../Sections/CreateTask'
 import EditTask from '../Blocks/EditTask'
 import Tasks from '../Sections/Tasks';
 import request from '../request'
-import {useParams } from 'react-router';
-import Header from '../Sections/Header'
+import {useNavigate, useParams } from 'react-router';
+import Header from '../Sections/Header';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 // admin/showTeam/{id}
 
 
 const TeamPage = () => {
+  const navigate = useNavigate()
   const[loggedUser,setloggedUser] = useState()
   const params = useParams()
   const [allTasks,setAllTasks] = useState([]);
@@ -29,30 +32,74 @@ const TeamPage = () => {
   const [selectedMember, setSelectedMember] = useState('');
   const [sortBy, setSortBy] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [modalMember, setModalMember] = useState({});
+  const [modalMember, setModalMember] = useState();
 
   useEffect(() => {
 
     request.post(`/admin/getTeam/${params.id}`,{token : localStorage.getItem("token")})
     .then((res) => {
-      console.log(res.data)
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       setloggedUser({...res.data.user})
       setTeamMembers([...res.data.users])
       setTeam(res.data.team)
     })
     .catch(err => {
+      alert("error in retrieving user and team details")
       console.log(err)
     })
 
-    request.get('/admin/getTeams')
+    request.post('/admin/getTeams',{token : localStorage.getItem("token")})
             .then((res) => {
                 if(!res.data){
                     return 
                 }
+                if(res.data.tokenMsg){
+                    console.log(res.data.tokenMsg)
+                    navigate("/")
+                    return
+                }
+                if(res.data.InvalidToken || res.data.ExpiredToken){
+                    localStorage.removeItem("token")
+                    navigate("/")
+                    return
+                    // console.log(res.data.InvalidToken)
+                }
+                if(res.data.accessStatus){
+                    alert(res.data.accessStatus)
+                    return
+                }
+                if(res.data.error){
+                    alert(res.data.error)
+                    return
+                }
+                // console.log("Teams : ",res.data)
                 setTeams([...res.data])
             })
             .catch((err) => {
-                alert(err)
+                alert("Error in retrieving all the teams")
+                console.log(err)
             })
 
 
@@ -63,10 +110,29 @@ const TeamPage = () => {
   useEffect(()=>{
     
 
-    request.get(`/task/team/${params.id}`)
+    request.post(`/task/team/${params.id}`,{token : localStorage.getItem("token")})
     .then((res) => {
-      if(!res.data) return 
-
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       setAllTasks([...res.data])
     })
     .catch(err => {
@@ -136,7 +202,7 @@ const TeamPage = () => {
         break;
       case 'status':
         sortedTasks.sort((a, b) => {
-          const statusOrder = { 'ongoing': 3, 'not started': 2, 'done': 1 };
+          const statusOrder = { 'ongoing': 2, 'not started': 3, 'done': 1 };
           return statusOrder[b.status.toLowerCase()] - statusOrder[a.status.toLowerCase()];
         });
         break;
@@ -157,6 +223,7 @@ const TeamPage = () => {
 
   return (
     <>
+    <ToastContainer />
       <Header loggedUser={loggedUser} setloggedUser={setloggedUser}/>
     <div className="container">
       <div className="row mt-4">

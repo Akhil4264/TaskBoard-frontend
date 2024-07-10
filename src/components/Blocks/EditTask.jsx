@@ -28,11 +28,11 @@ const TaskModal = ({ show, handleClose, task, teamMembers, handleUpdate }) => {
             <form>
               <div className="mb-3">
                 <label htmlFor="title" className="form-label">Title</label>
-                <input type="text" className="form-control" id="title" name="title" value={editedTask.title} onChange={handleChange} />
+                <input type="text" className="form-control" id="title" name="title" value={editedTask.title} onChange={handleChange} required/>
               </div>
               <div className="mb-3">
                 <label htmlFor="priority" className="form-label">Priority</label>
-                <select className="form-select" id="priority" name="priority" value={editedTask.priority} onChange={handleChange}>
+                <select className="form-select" id="priority" name="priority" value={editedTask.priority} onChange={handleChange} required >
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
@@ -40,7 +40,7 @@ const TaskModal = ({ show, handleClose, task, teamMembers, handleUpdate }) => {
               </div>
               <div className="mb-3">
                 <label htmlFor="status" className="form-label">Status</label>
-                <select className="form-select" id="status" name="status" value={editedTask.status} onChange={handleChange}>
+                <select className="form-select" id="status" name="status" value={editedTask.status} onChange={handleChange} required>
                   <option value="ongoing">Ongoing</option>
                   <option value="not started">Not Started</option>
                   <option value="done">Done</option>
@@ -48,11 +48,11 @@ const TaskModal = ({ show, handleClose, task, teamMembers, handleUpdate }) => {
               </div>
               <div className="mb-3">
                 <label htmlFor="description" className="form-label">Description</label>
-                <textarea className="form-control" id="description" rows="3" name="description" value={editedTask.description} onChange={handleChange}></textarea>
+                <textarea className="form-control" id="description" rows="3" name="description" value={editedTask.description} onChange={handleChange} required></textarea>
               </div>
               <div className="mb-3">
                 <label htmlFor="assigned_to" className="form-label">Assigned To</label>
-                <select className="form-select" id="assigned_to" name="assigned_to" value={editedTask.assigned_to} onChange={handleChange}>
+                <select className="form-select" id="assigned_to" name="assigned_to" value={editedTask.assigned_to} onChange={handleChange} required>
                   {teamMembers.map((member, index) => (
                     <option key={index} value={member.name}>{member.name}</option>
                   ))}
@@ -60,7 +60,7 @@ const TaskModal = ({ show, handleClose, task, teamMembers, handleUpdate }) => {
               </div>
               <div className="mb-3">
                 <label htmlFor="deadline" className="form-label">Deadline</label>
-                <input type="date" className="form-control" id="deadline" name="deadline" value={editedTask.deadline} onChange={handleChange} />
+                <input type="date" className="form-control" id="deadline" name="deadline" value={editedTask.deadline} onChange={handleChange} required/>
               </div>
             </form>
           </div>

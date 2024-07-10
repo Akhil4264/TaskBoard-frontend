@@ -1,62 +1,101 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import request from '../request'
 
-const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, loggedUser, team, teams}) => {
+const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, loggedUser, team, teams }) => {
+  const navigate = useNavigate()
   const [editingTeam, setEditingTeam] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState("");
 
 
-
   const handleRemoveUser = () => {
-    request.post(`/admin/removeUserFromTeam/${team.id}/${member.id}`)
-    .then((res) => {
-      if(!res.data.message){
-        return
-      }
+    request.post(`/admin/removeUserFromTeam/${team.id}/${member.id}`,{token : localStorage.getItem("token")})
+      .then((res) => {
+        if (res.data.tokenMsg) {
+          console.log(res.data.tokenMsg)
+          navigate("/")
+          return
+        }
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          navigate("/")
+          return
+          // console.log(res.data.InvalidToken)
+        }
+        if (res.data.accessStatus) {
+          // alert("access denied")
+          alert(res.data.accessStatus)
+          return
+        }
+        if (res.data.error) {
+          // alert("access denied")
+          alert(res.data.error)
+          return
+        }
+        if (res.data.message) {
+          // toast.success(res.data.message)
+          alert(res.data.message)
+        }
 
-      setTeamMembers(teamMembers => teamMembers.filter((ele) => {
-        return ele.id !== member.id
-      }))
+        setTeamMembers(teamMembers => teamMembers.filter((ele) => {
+          return ele.id !== member.id
+        }))
 
 
-    })
-    .catch((err) => {
-      alert(err)
-    })
-    .finally(() => {
-      handleClose()
-    })
+      })
+      .catch((err) => {
+        // alert(err)
+        alert("couldn't remove the user from team")
+      })
+      .finally(() => {
+        handleClose()
+      })
   }
 
   const ToggleStatus = () => {
-    request.post(`/admin/toggleRole/${member.id}`)
+    request.post(`/admin/toggleRole/${member.id}`,{token : localStorage.getItem("token")})
       .then((res) => {
         console.log(res.data);
-        if (!res.data.message) return;
-        
-        let changedRole;
-        if (member.role === "admin") changedRole = "user";
-        else if(member.role === "user") changedRole = "admin";
-        
-        // console.log("Changed Role:", changedRole);
-        
-        // Update the role in the teamMembers state
-        // setTeamMembers(prevTeamMembers =>
-        //   prevTeamMembers.map(ele => 
-        //     ele.id === member.id ? { ...ele, role: changedRole } : ele
-        //   )
-        // );
-
-        setTeamMembers(teamMembers.map((ele) => {
-          return ele.id === member.id ? { ...ele, role: changedRole } : ele
-        }))
-
-        member.role = changedRole
-
-        // console.log(teamMembers)
+        if (res.data.tokenMsg) {
+          console.log(res.data.tokenMsg)
+          navigate("/")
+          return
+        }
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          navigate("/")
+          return
+          // console.log(res.data.InvalidToken)
+        }
+        if (res.data.accessStatus) {
+          // alert("access denied")
+          alert(res.data.accessStatus)
+          return
+        }
+        if (res.data.error) {
+          // alert("access denied")
+          alert(res.data.error)
+          return
+        }
+        if (res.data.message) {
+          // handleClose()
+          setTeamMembers(teamMembers.map((ele) => {
+            return ele.id === member.id ? { ...ele, role: res.data.roles } : ele
+          }))
+          
+          member.role = res.data.roles
+          
+          console.log(member)
+          // toast.success(res.data.message)
+          return ;
+        }
       })
       .catch((err) => {
-        alert(err);
+        console.log(err)
+        alert("Error changing role of the user")
       });
   };
 
@@ -66,10 +105,32 @@ const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, logg
 
     // console.log("select team : ",selectedTeam)
 
-    request.post(`/admin/changeUserTeam/${member.id}`, { teamId: selectedTeam })
+    request.post(`/admin/changeUserTeam/${member.id}`, { teamId: selectedTeam,token : localStorage.getItem("token") })
       .then((res) => {
-        console.log(res.data)
+        if (res.data.tokenMsg) {
+          console.log(res.data.tokenMsg)
+          navigate("/")
+          return
+        }
+        if (res.data.InvalidToken || res.data.ExpiredToken) {
+          localStorage.removeItem("token")
+          navigate("/")
+          return
+          // console.log(res.data.InvalidToken)
+        }
+        if (res.data.accessStatus) {
+          // alert("access denied")
+          alert(res.data.accessStatus)
+          return
+        }
+        if (res.data.error) {
+          // alert("access denied")
+          alert(res.data.error)
+          return
+        }
         if (res.data.message) {
+          // toast(res.data.message)
+          alert(res.data.message)
           setTeamMembers(teamMembers => teamMembers.filter((ele) => {
             return ele.id !== member.id
           }))
@@ -79,8 +140,8 @@ const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, logg
         console.log(err)
       })
       .finally(() => {
-          setSelectedTeam("")
-          handleClose()
+        setSelectedTeam("")
+        handleClose()
       })
 
 
@@ -94,15 +155,16 @@ const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, logg
 
   return (
     <>
+      {/* <ToastContainer /> */}
       <div className={`modal fade ${show ? 'show d-block' : ''}`} tabIndex="-1" role="dialog" style={{ display: show ? 'block' : 'none' }}>
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">Team Member Details</h5>
+              <h5 className="modal-title">{team ? "Team Member Details" : "Member Details"}</h5>
               <button type="button" className="btn-close" onClick={closeModal}></button>
             </div>
             <div className="modal-body">
-              <p><strong>Name:</strong> {member.name}</p>
+              <p><strong>Name:</strong> {member && member.name ? member.name : "user"}</p>
               <div className="mb-3">
                 <strong>Team:</strong>&nbsp;
                 {editingTeam ? (
@@ -117,14 +179,14 @@ const UserCard = ({ show, handleClose, member, teamMembers, setTeamMembers, logg
                   </>
                 ) : (
                   <>
-                    {/* {team.title} */}
-                    {loggedUser && loggedUser.role.includes("ROLE_ADMIN")&& <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Change Team</button>}
+                    <span style={{ color: team ? "black" : "red" }}> {team ? team.name : "not a part of any team"} </span>
+                    {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Change Team</button>}
                   </>
                 )}
               </div>
-              <p><strong>Email:</strong> {member.email}</p>
+              <p><strong>Email:</strong> {member && member.email ? member.email : "user"}</p>
               {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => handleRemoveUser(member.id)}>Remove User From Team</button>}
-              {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => ToggleStatus()}>{member.role === "admin" ? "remove as admin" : "make admin"}</button>}
+              {loggedUser && loggedUser.role.includes("ROLE_ADMIN") && <button className="btn btn-primary ms-2" onClick={() => ToggleStatus()}>{member &&member.role && member.role.includes("ROLE_ADMIN") ? "remove as admin" : "make admin"}</button>}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={closeModal}>Close</button>

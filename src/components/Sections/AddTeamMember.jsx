@@ -1,20 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import request from '../request'
+import { useNavigate } from 'react-router';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+
 const AddTeamMember = (props) => {
+  const navigate = useNavigate()
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [selectedUsers, setselectedUsers] = useState([]);
   // console.log(selectedUsers)
 
   useEffect(()=>{
-    request.get(`/admin/getIndUsers`)
+    if(!modalIsOpen) return
+    request.post(`/admin/getIndUsers`,{token : localStorage.getItem("token")})
     .then((res) => {
-      // console.log(res.data)
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       setUsers(res.data)
     })
     .catch((err) => {
       alert(err)
     })
-  },[])
+  },[modalIsOpen])
 
   const [users,setUsers] = useState([]);
   const openModal = () => {
@@ -47,9 +74,29 @@ const AddTeamMember = (props) => {
     const userids = selectedUsers.map((mem) => {
       return mem.id
     })
-    request.post(`/admin/addUserToTeam/${props.teamId}`,{"user_ids" : userids})
+    request.post(`/admin/addUserToTeam/${props.teamId}`,{"user_ids" : userids,token : localStorage.getItem('token')})
     .then((res) => {
-      if(!res.data.message) return ;
+      if (res.data.tokenMsg) {
+        console.log(res.data.tokenMsg)
+        navigate("/")
+        return
+      }
+      if (res.data.InvalidToken || res.data.ExpiredToken) {
+        localStorage.removeItem("token")
+        navigate("/")
+        return
+        // console.log(res.data.InvalidToken)
+      }
+      if (res.data.accessStatus) {
+        // alert("access denied")
+        alert(res.data.accessStatus)
+        return
+      }
+      if (res.data.error) {
+        // alert("access denied")
+        alert(res.data.error)
+        return
+      }
       
       props.setTeamMembers([...props.teamMembers,...selectedUsers])
       setUsers(users => users.filter(user => !userids.includes(user.id)));
@@ -63,6 +110,7 @@ const AddTeamMember = (props) => {
 
   return (
     <div className="my-2">
+      <ToastContainer />
       <button className="btn btn-primary" onClick={openModal}>
         Add a team member
       </button>

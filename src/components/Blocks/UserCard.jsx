@@ -4,15 +4,36 @@ import { useNavigate } from 'react-router';
 
 
 const UserCard = ({ member, loggedUser , teams }) => {
+    console.log(member)
     const [editingTeam, setEditingTeam] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState("");
     const navigate = useNavigate()
     const handleTeamChange = (team) => {
         setSelectedTeam(team)
         setEditingTeam(false)
-        request.post(`/admin/changeUserTeam/${member.id}`,{teamId : selectedTeam})
+        request.post(`/admin/changeUserTeam/${member.id}`,{teamId : selectedTeam,token : localStorage.getItem("token")})
         .then((res) => {
-            console.log(res.data)
+            if (res.data.tokenMsg) {
+                console.log(res.data.tokenMsg)
+                navigate("/")
+                return
+              }
+              if (res.data.InvalidToken || res.data.ExpiredToken) {
+                localStorage.removeItem("token")
+                navigate("/")
+                return
+                // console.log(res.data.InvalidToken)
+              }
+              if (res.data.accessStatus) {
+                // alert("access denied")
+                alert(res.data.accessStatus)
+                return
+              }
+              if (res.data.error) {
+                // alert("access denied")
+                alert(res.data.error)
+                return
+              }
             setSelectedTeam("")
             navigate(`/admin`)
         })
@@ -39,7 +60,7 @@ const UserCard = ({ member, loggedUser , teams }) => {
                     </>
                 ) : (
                     <>
-                        {member && member.team ? member.team.name : ""}
+                        {member && member.team ? member.team.name : "Not a part of any team"}
                         <button className="btn btn-outline-primary ms-2" onClick={() => setEditingTeam(true)}>Move to a Team</button>
                     </>
                 )}
