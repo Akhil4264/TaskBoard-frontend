@@ -37,6 +37,13 @@ const Admins = () => {
 
         }
         getIndUsers()
+
+        // console.log("response")
+        const hi = () => {
+            console.log("helllo")
+        }
+
+        hi()
     },[])
 
 

@@ -49,7 +49,7 @@ const UserInvite = ({ indUsers, setIndUsers }) => {
       }
       // console.log(res.data);
 
-      alert("Please check your inbox for login credentials");
+      alert("Invitation sent to the user");
 
       await setIndUsers([...indUsers, res.data.user]);
       // handleCloseModal();

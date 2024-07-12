@@ -61,6 +61,7 @@ const TeamPage = () => {
         alert(res.data.error)
         return
       }
+      console.log("hello")
       setloggedUser({...res.data.user})
       setTeamMembers([...res.data.users])
       setTeam(res.data.team)

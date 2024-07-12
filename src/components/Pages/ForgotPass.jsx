@@ -1,9 +1,27 @@
 import React, { useState } from 'react';
+import request from '../request'
+import { useNavigate } from 'react-router';
 
 function ForgotPassword() {
+    const navigate = useNavigate()
     const [otpSectionActive, setOtpSectionActive] = useState(false);
+    const [email,setEmail] = useState("")
     const handleSendOtp = () => {
-        setOtpSectionActive(true);
+        // setOtpSectionActive(true);
+        request.post('/forgot-password',{email})
+        .then((res) => {
+            if(res.data.error){
+                alert(res.data.error)
+            }
+            if(res.data.message){
+                alert(res.data.message)
+                setEmail("")
+            }
+        })
+        .catch((e) => {
+            console.log(e)
+            alert("error in reaching the server")
+        })
     };
 
     return (
@@ -13,20 +31,9 @@ function ForgotPassword() {
                 <form action="/send-otp" method="post">
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label fw-bold">Enter your Email:</label>
-                        <input type="email" className="form-control" id="email" name="email" required />
+                        <input type="email" className="form-control" id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)}required />
                     </div>
-                    <button type="button" onClick={handleSendOtp} className="btn btn-primary w-100">{otpSectionActive ? "Resend OTP" : "Send OTP"}</button>
-                    {otpSectionActive && (
-                        <>
-                            <div className="mt-3">
-                                <div className="mb-3">
-                                    <label htmlFor="otp" className="form-label">Enter OTP:</label>
-                                    <input type="text" className="form-control" id="otp" name="otp" required />
-                                </div>
-                            </div>
-                            <button type="submit" className="btn btn-success w-100">Verify OTP</button>
-                        </>
-                    )}
+                    <button type="button" onClick={handleSendOtp} className="btn btn-primary w-100">submit</button>
                 </form>
 
                 <a href="/" className="d-block text-center mt-3 fw-bold text-white text-decoration-none">Back to Login</a>
